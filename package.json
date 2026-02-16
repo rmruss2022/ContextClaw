@@ -1,5 +1,5 @@
 {
-  "name": "@rmruss2022/contextclaw",
+  "name": "@tigertroll14/contextclaw",
   "version": "1.0.0",
   "description": "Session and context management for OpenClaw agents",
   "main": "dist/index.js",
