@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🦞 ContextClaw Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #0a0a0f;
+      color: #e4e4e7;
+      line-height: 1.6;
+    }
+    
+    .header {
+      background: rgba(0, 0, 0, 0.5);
+      border-bottom: 1px solid #27272a;
+      padding: 1.5rem;
+    }
+    
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header p {
+      color: #a1a1aa;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    
+    .stat-card h3 {
+      color: #a1a1aa;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #a855f7;
+    }
+    
+    .stat-card.warning .value {
+      color: #f59e0b;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #a1a1aa;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .tab-btn:hover {
+      color: #e4e4e7;
+    }
+    
+    .tab-btn.active {
+      border-bottom-color: #a855f7;
+      color: #a855f7;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .session-list {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .session-item {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.2s;
+      align-items: center;
+    }
+    
+    .session-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .session-item:last-child {
+      border-bottom: none;
+    }
+    
+    .session-id {
+      font-family: monospace;
+      font-size: 0.875rem;
+      color: #e4e4e7;
+    }
+    
+    .session-type {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .session-type.main {
+      background: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+    }
+    
+    .session-type.cron {
+      background: rgba(59, 130, 246, 0.2);
+      color: #3b82f6;
+    }
+    
+    .session-type.subagent {
+      background: rgba(236, 72, 153, 0.2);
+      color: #ec4899;
+    }
+    
+    .session-type.unknown {
+      background: rgba(161, 161, 170, 0.2);
+      color: #a1a1aa;
+    }
+    
+    .session-size {
+      font-size: 0.875rem;
+      color: #a1a1aa;
+    }
+    
+    .action-btn {
+      padding: 0.5rem 1rem;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: 6px;
+      color: #a855f7;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-right: 0.5rem;
+    }
+    
+    .action-btn:hover {
+      background: rgba(168, 85, 247, 0.25);
+      border-color: rgba(168, 85, 247, 0.6);
+    }
+    
+    .action-btn.danger {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+    }
+    
+    .action-btn.danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.6);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #71717a;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: #71717a;
+    }
+    
+    .actions-bar {
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    
+    .chart-container {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .bar-chart {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .bar-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .bar-label {
+      width: 150px;
+      font-size: 0.875rem;
+      color: #a1a1aa;
+    }
+    
+    .bar {
+      flex: 1;
+      height: 30px;
+      background: rgba(168, 85, 247, 0.2);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #a855f7, #ec4899);
+      transition: width 0.3s;
+    }
+    
+    .bar-value {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      color: #e4e4e7;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🦞 ContextClaw Dashboard</h1>
+    <p>Session and context management</p>
+  </div>
+  
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Total Sessions</h3>
+        <div class="value" id="stat-sessions">-</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Messages</h3>
+        <div class="value" id="stat-messages">-</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Tokens</h3>
+        <div class="value" id="stat-tokens">-</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Size</h3>
+        <div class="value" id="stat-size">-</div>
+      </div>
+      <div class="stat-card warning">
+        <h3>Orphaned</h3>
+        <div class="value" id="stat-orphaned">-</div>
+      </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="all">All Sessions</button>
+      <button class="tab-btn" data-tab="largest">Largest</button>
+      <button class="tab-btn" data-tab="oldest">Oldest</button>
+      <button class="tab-btn" data-tab="orphaned">Orphaned</button>
+      <button class="tab-btn" data-tab="chart">Visualization</button>
+    </div>
+    
+    <!-- Tab: All Sessions -->
+    <div class="tab-content active" id="tab-all">
+      <div class="actions-bar">
+        <button class="action-btn" id="refresh-btn">🔄 Refresh</button>
+        <button class="action-btn danger" id="prune-btn">🧹 Prune Old</button>
+        <button class="action-btn danger" id="clean-orphaned-btn">🗑️ Clean Orphaned</button>
+      </div>
+      <div class="session-list" id="all-sessions">
+        <div class="loading">Loading sessions...</div>
+      </div>
+    </div>
+    
+    <!-- Tab: Largest -->
+    <div class="tab-content" id="tab-largest">
+      <div class="session-list" id="largest-sessions">
+        <div class="loading">Loading...</div>
+      </div>
+    </div>
+    
+    <!-- Tab: Oldest -->
+    <div class="tab-content" id="tab-oldest">
+      <div class="session-list" id="oldest-sessions">
+        <div class="loading">Loading...</div>
+      </div>
+    </div>
+    
+    <!-- Tab: Orphaned -->
+    <div class="tab-content" id="tab-orphaned">
+      <div class="actions-bar">
+        <button class="action-btn danger" id="clean-orphaned-tab-btn">🗑️ Clean All Orphaned</button>
+      </div>
+      <div class="session-list" id="orphaned-sessions">
+        <div class="loading">Loading...</div>
+      </div>
+    </div>
+    
+    <!-- Tab: Visualization -->
+    <div class="tab-content" id="tab-chart">
+      <div class="chart-container">
+        <h3 style="margin-bottom: 1rem; color: #a1a1aa;">Top 10 Sessions by Size</h3>
+        <div class="bar-chart" id="size-chart"></div>
+      </div>
+      <div class="chart-container">
+        <h3 style="margin-bottom: 1rem; color: #a1a1aa;">Session Types</h3>
+        <div class="bar-chart" id="type-chart"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let sessionsData = null;
+    
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        btn.classList.add('active');
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+      });
+    });
+    
+    // Render session item
+    function renderSessionItem(session) {
+      const ageInDays = Math.floor((Date.now() - new Date(session.lastModified).getTime()) / (1000 * 60 * 60 * 24));
+      
+      return `
+        <div class="session-item">
+          <div>
+            <div class="session-id">${session.label || session.sessionKey.substring(0, 30)}</div>
+            <div style="font-size: 0.75rem; color: #71717a; margin-top: 0.25rem;">
+              ${session.sessionKey}
+            </div>
+          </div>
+          <span class="session-type ${session.agentType}">${session.agentType}</span>
+          <span class="session-size">${formatBytes(session.sizeBytes)}</span>
+          <span style="font-size: 0.875rem; color: #a1a1aa;">${session.messageCount} msgs</span>
+          <span style="font-size: 0.875rem; color: #71717a;">${ageInDays}d old</span>
+        </div>
+      `;
+    }
+    
+    // Format bytes
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+      return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+    }
+    
+    // Fetch and render sessions
+    async function fetchSessions() {
+      try {
+        const response = await fetch('/api/sessions');
+        if (!response.ok) throw new Error('Failed to fetch');
+        
+        sessionsData = await response.json();
+        renderSessions();
+        updateStats();
+        renderCharts();
+      } catch (error) {
+        console.error('Failed to fetch sessions:', error);
+      }
+    }
+    
+    // Render sessions in all tabs
+    function renderSessions() {
+      if (!sessionsData) return;
+      
+      // All sessions (by size)
+      const allHtml = sessionsData.bySizeDesc.map(renderSessionItem).join('');
+      document.getElementById('all-sessions').innerHTML = allHtml || '<div class="empty-state">No sessions found</div>';
+      
+      // Largest
+      const largestHtml = sessionsData.bySizeDesc.slice(0, 20).map(renderSessionItem).join('');
+      document.getElementById('largest-sessions').innerHTML = largestHtml || '<div class="empty-state">No sessions found</div>';
+      
+      // Oldest
+      const oldestHtml = sessionsData.byAge.slice(0, 20).map(renderSessionItem).join('');
+      document.getElementById('oldest-sessions').innerHTML = oldestHtml || '<div class="empty-state">No sessions found</div>';
+      
+      // Orphaned
+      const orphanedHtml = sessionsData.orphaned.map(renderSessionItem).join('');
+      document.getElementById('orphaned-sessions').innerHTML = orphanedHtml || '<div class="empty-state">No orphaned sessions</div>';
+    }
+    
+    // Update stats
+    function updateStats() {
+      if (!sessionsData) return;
+      
+      document.getElementById('stat-sessions').textContent = sessionsData.totalSessions;
+      document.getElementById('stat-messages').textContent = sessionsData.totalMessages.toLocaleString();
+      document.getElementById('stat-tokens').textContent = sessionsData.totalTokens.toLocaleString();
+      document.getElementById('stat-size').textContent = formatBytes(sessionsData.totalSizeBytes);
+      document.getElementById('stat-orphaned').textContent = sessionsData.orphaned.length;
+    }
+    
+    // Render charts
+    function renderCharts() {
+      if (!sessionsData) return;
+      
+      // Size chart
+      const sizeChart = document.getElementById('size-chart');
+      const maxSize = sessionsData.bySizeDesc[0]?.sizeBytes || 1;
+      
+      sizeChart.innerHTML = sessionsData.bySizeDesc.slice(0, 10).map(session => {
+        const percent = (session.sizeBytes / maxSize) * 100;
+        return `
+          <div class="bar-item">
+            <div class="bar-label">${session.label || session.sessionKey.substring(0, 15)}</div>
+            <div class="bar">
+              <div class="bar-fill" style="width: ${percent}%"></div>
+              <div class="bar-value">${formatBytes(session.sizeBytes)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Type chart
+      const typeCounts = {};
+      for (const session of sessionsData.bySizeDesc) {
+        typeCounts[session.agentType] = (typeCounts[session.agentType] || 0) + 1;
+      }
+      
+      const typeChart = document.getElementById('type-chart');
+      const maxCount = Math.max(...Object.values(typeCounts));
+      
+      typeChart.innerHTML = Object.entries(typeCounts).map(([type, count]) => {
+        const percent = (count / maxCount) * 100;
+        return `
+          <div class="bar-item">
+            <div class="bar-label">${type}</div>
+            <div class="bar">
+              <div class="bar-fill" style="width: ${percent}%"></div>
+              <div class="bar-value">${count} sessions</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Refresh button
+    document.getElementById('refresh-btn').addEventListener('click', fetchSessions);
+    
+    // Prune button
+    document.getElementById('prune-btn').addEventListener('click', async () => {
+      if (!confirm('Prune sessions older than 30 days? (Dry run first)')) return;
+      
+      const response = await fetch('/api/prune', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ daysOld: 30, dryRun: true }),
+      });
+      
+      const result = await response.json();
+      alert(`Would delete ${result.deleted.length} sessions\nWould free ${result.totalBytesFormatted}\n\nRun 'openclaw contextclaw prune' from CLI to actually delete.`);
+    });
+    
+    // Clean orphaned buttons
+    const cleanOrphanedHandler = async () => {
+      if (!confirm('Clean orphaned sessions? (Dry run first)')) return;
+      
+      const response = await fetch('/api/clean-orphaned', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun: true }),
+      });
+      
+      const result = await response.json();
+      alert(`Would delete ${result.deleted.length} orphaned sessions\nWould free ${result.totalBytesFormatted}\n\nRun 'openclaw contextclaw clean-orphaned' from CLI to actually delete.`);
+    };
+    
+    document.getElementById('clean-orphaned-btn').addEventListener('click', cleanOrphanedHandler);
+    document.getElementById('clean-orphaned-tab-btn').addEventListener('click', cleanOrphanedHandler);
+    
+    // Initial load
+    fetchSessions();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(fetchSessions, 30000);
+  </script>
+</body>
+</html>
